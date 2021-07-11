@@ -26,6 +26,7 @@ class RandomWords extends StatefulWidget {
 class _RandomWordsState extends State<RandomWords> {
   final _suggestions = <WordPair>[];
   final _bigFont = TextStyle(fontSize: 18);
+  final _saved = <WordPair>{};
   @override
   Widget build(BuildContext context) {
     // final wordPair = WordPair.random();
@@ -33,8 +34,50 @@ class _RandomWordsState extends State<RandomWords> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Startup Name Generator'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.list),
+            onPressed: _pushSaved,
+          ),
+        ],
+        leading: Icon(Icons.access_alarms),
       ),
       body: _buildSuggestions(),
+    );
+  }
+
+  void _pushSaved() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (BuildContext context) {
+          final tiles = _saved.map(
+            (WordPair pair) {
+              return ListTile(
+                title: Text(
+                  pair.asPascalCase,
+                  style: _bigFont,
+                ),
+                leading: Icon(
+                  Icons.favorite,
+                  color: Colors.red,
+                ),
+              );
+            },
+          );
+          final divided = tiles.isNotEmpty
+              ? ListTile.divideTiles(
+                  context: context,
+                  tiles: tiles,
+                ).toList()
+              : <Widget>[];
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('Saved Names'),
+            ),
+            body: ListView(children: divided),
+          );
+        },
+      ),
     );
   }
 
@@ -55,6 +98,7 @@ class _RandomWordsState extends State<RandomWords> {
   }
 
   Widget _buildRow(WordPair pair) {
+    final alreadySaved = _saved.contains(pair);
     return ListTile(
       leading: Icon(Icons.business_center_outlined),
       title: Text(
@@ -62,6 +106,20 @@ class _RandomWordsState extends State<RandomWords> {
         style: _bigFont,
       ),
       subtitle: Text("Example"),
+      trailing: Icon(
+        alreadySaved ? Icons.favorite : Icons.favorite_outline,
+        color: alreadySaved ? Colors.red : null,
+      ),
+      onTap: () {
+        setState(() {
+          if (alreadySaved) {
+            _saved.remove(pair);
+          } else {
+            _saved.add(pair);
+          }
+        });
+        print(pair.asCamelCase);
+      },
     );
   }
 }
